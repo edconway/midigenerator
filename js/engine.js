@@ -385,7 +385,7 @@ const Engine = (() => {
           break;
         }
 
-        case 'cluster': // horror: sustained chord + a dissonant added tone
+        case 'cluster': // sustained chord + a dissonant added tone
           if (h.boundary) {
             const dur = 4 * h.durBars - 0.15;
             put(0, dur, 52);
@@ -420,6 +420,21 @@ const Engine = (() => {
                 pitch: p,
                 vel: (s === 0 ? 70 : 56) + Math.round(rand() * 8),
               });
+            }
+          }
+          break;
+        }
+
+        case 'drone': { // drones: soft stacked sustain with overtone doublings
+          if (h.boundary) {
+            const dur = 4 * h.durBars - 0.08;
+            const root = h.voicing[0];
+            if (root - 12 >= 36) notes.push({ start: t0, dur, pitch: root - 12, vel: 40 + Math.round(rand() * 6) });
+            for (const p of h.voicing) {
+              notes.push({ start: t0, dur, pitch: p, vel: 44 + Math.round(rand() * 8) });
+              if (p + 12 <= 96 && Theory.chance(rand, 0.45)) {
+                notes.push({ start: t0, dur, pitch: p + 12, vel: 30 + Math.round(rand() * 8) });
+              }
             }
           }
           break;

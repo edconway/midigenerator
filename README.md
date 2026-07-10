@@ -29,7 +29,7 @@ No install, no server, no dependencies: it's a static web page.
    | 🎬 **Cinematic** | Epic, heroic — orchestral swells + taiko |
    | 🌫️ **Ambient** | Calm establishing beds, weightless |
    | 🕰️ **Tension / Suspense** | Ticking-clock dread that never resolves |
-   | 🕯️ **Dark Ambient / Horror** | Dissonant clusters, near-zero pulse |
+   | 🌀 **Drones** | Slow sustained tones, layered harmonic beds |
    | 🕊️ **Emotional / Sad** | Intimate piano & strings, broken chords |
    | 🕵️ **Mystery / Noir** | Walking bass, brushed drums, smoky minor |
    | 🏃 **Action / Chase** | Propulsive ostinato + taiko drive |

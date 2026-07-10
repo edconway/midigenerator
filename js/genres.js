@@ -11,7 +11,7 @@
  * dark/soft -> bright/hard; the Timbre dial indexes into them.
  *
  * The set is tuned for scoring film & podcasts: mood/function genres
- * (tension, horror, emotional, noir, action, uplifting) plus a
+ * (tension, drones, emotional, noir, action, uplifting) plus a
  * handful of electronic beds (synthwave, techno, trap, dnb).
  */
 
@@ -101,27 +101,29 @@ const Genres = [
   },
 
   {
-    id: 'horror', name: 'Dark Ambient / Horror', icon: '🕯️',
-    desc: 'Dissonant clusters, almost no pulse — evolving dread for the worst scenes.',
-    tempo: [50, 72, 60], swing: 0.0, swingUnit: 16, humanize: 0.5,
-    scales: ['phrygian', 'minor', 'harmonicMinor'],
-    priority: ['pads', 'melody', 'chords', 'arp', 'bass', 'drums'],
-    progressions: [[0, 1], [0, 6], [0, 0, 1, 1], [0, 5, 1, 0], [0, 3, 1, 0]],
-    chordSize: 4, barsPerChord: 2, chordStyle: 'cluster', chordRange: [46, 74],
+    id: 'drones', name: 'Drones', icon: '🌀',
+    desc: 'Slow sustained tones, layered harmonic beds — vast, weightless atmosphere.',
+    tempo: [40, 58, 48], swing: 0.0, swingUnit: 16, humanize: 0.65,
+    scales: ['lydian', 'minor', 'dorian', 'mixolydian', 'phrygian'],
+    priority: ['pads', 'bass', 'chords', 'arp', 'melody', 'drums'],
+    // Glacial harmonic stasis — long pedal points with the occasional modal drift.
+    progressions: [[0, 0, 0, 0], [0, 0], [0, 4], [0, 5], [0, 3, 0], [0, 6, 0, 0], [0, 4, 0, 0], [0, 5, 0, 0]],
+    chordSize: 4, barsPerChord: 4, chordStyle: 'drone', chordRange: [44, 72],
     bassStyle: 'drone', bassOctave: 1,
-    melody: { octave: 5, style: 'sparse' },
-    arp: { rate: 8, pattern: 'updown' },
-    energy: 0.2, complexity: 0.35,
+    melody: { octave: 6, style: 'sparse' },
+    arp: { rate: 8, pattern: 'random' },
+    energy: 0.15, complexity: 0.28,
     instruments: {
-      bass: [43, 92, 38], chords: [52, 93, 94], melody: [53, 92, 80],
-      pads: [95, 99, 101], arp: [8, 98, 102],
+      bass: [89, 43, 38], chords: [89, 91, 52], melody: [73, 92, 54],
+      pads: [89, 94, 91], arp: [95, 98, 88],
     },
     drums: {
       variants: [
-        { kick: 'X.............?.', crash: 'X...............' },
-        { ltom: '..........?.....', bell: '?.......?.......' },
+        { shaker: '?.......?.......', phh: '........?.......' },
+        { bell: '?.......?.......', shaker: '?.......?.......' },
+        { phh: '....?.......?...', shaker: '?.......?.......' },
       ],
-      fill: { crash: '..............X.' },
+      fill: {},
       crashOnOne: false,
     },
   },
