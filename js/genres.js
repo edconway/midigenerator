@@ -11,7 +11,7 @@
  * dark/soft -> bright/hard; the Timbre dial indexes into them.
  *
  * The set is tuned for scoring film & podcasts: mood/function genres
- * (tension, horror, emotional, noir, action, uplifting, comedic) plus a
+ * (tension, horror, emotional, noir, action, uplifting) plus a
  * handful of electronic beds (synthwave, techno, trap, dnb).
  */
 
@@ -229,33 +229,6 @@ const Genres = [
       ],
       fill: { clap: '..........x.x.xX', tamb: '............xxxx' },
       crashOnOne: true,
-    },
-  },
-
-  {
-    id: 'comedic', name: 'Comedic / Quirky', icon: '🤹',
-    desc: 'Pizzicato hops, marimba & woodblocks, playful off-kilter rhythm.',
-    tempo: [104, 140, 120], swing: 0.2, swingUnit: 16, humanize: 0.4,
-    scales: ['major', 'lydian', 'mixolydian', 'dorian'],
-    priority: ['bass', 'melody', 'chords', 'drums', 'pads', 'arp'],
-    progressions: [[0, 3, 4, 4], [0, 4, 5, 4], [3, 0, 4, 0], [0, 5, 4, 3], [0, 3, 0, 4]],
-    chordSize: 3, barsPerChord: 1, chordStyle: 'staccato', chordRange: [55, 76],
-    bassStyle: 'pizz', bassOctave: 2,
-    melody: { octave: 5, style: 'playful' },
-    arp: { rate: 16, pattern: 'updown' },
-    energy: 0.6, complexity: 0.55,
-    instruments: {
-      bass: [45, 33, 58], chords: [45, 12, 7], melody: [12, 13, 71],
-      pads: [24, 89, 48], arp: [13, 12, 10],
-    },
-    drums: {
-      variants: [
-        { clave: 'x...x...x...x...', rim: '..x...x...x...x.', kick: 'X.......X.......', snare: '....X.......X...' },
-        { clave: 'x..x..x.x..x..x.', cowbell: '....?.......?...', kick: 'X.....x.X.....x.', chh: '..x...x...x...x.' },
-        { clave: 'x.x.x.x.x.x.x.x.', kick: 'X...X...X...X...', rim: '....X.......X...' },
-      ],
-      fill: { clave: '..........x.xxxX', mtom: '............?.?.' },
-      crashOnOne: false,
     },
   },
 

@@ -285,7 +285,7 @@ const Engine = (() => {
           break;
         }
 
-        case 'pizz': { // comedic: bouncy staccato hops
+        case 'pizz': { // bouncy staccato hops
           for (const s of [0, 4, 8, 12]) put(s, 0.14, root, 98);
           for (const s of [2, 6, 10, 14]) {
             if (!Theory.chance(rand, 0.3 + complexity * 0.4)) continue;
@@ -399,7 +399,7 @@ const Engine = (() => {
           }
           break;
 
-        case 'staccato': { // comedic: short playful stabs
+        case 'staccato': { // short playful stabs
           put(0, 0.14, 88);
           for (const s of [2, 4, 6, 8, 10, 12, 14]) {
             if (!Theory.chance(rand, 0.28 + complexity * 0.35)) continue;
@@ -469,7 +469,7 @@ const Engine = (() => {
       [[0, 2], [4, 2], [6, 2], [8, 2], [10, 2], [12, 2], [14, 2]],
       [[0, 4], [4, 4], [8, 2], [10, 2], [12, 4]],
     ],
-    playful: [ // comedic: skippy staccato bounce
+    playful: [ // skippy staccato bounce
       [[0, 1], [2, 1], [3, 1], [6, 2], [8, 1], [10, 1], [11, 1], [14, 2]],
       [[0, 2], [2, 1], [4, 1], [6, 1], [8, 2], [11, 1], [12, 2], [14, 1]],
       [[0, 1], [1, 1], [4, 2], [7, 1], [8, 1], [10, 1], [12, 2], [15, 1]],
