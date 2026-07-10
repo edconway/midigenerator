@@ -34,7 +34,6 @@ No install, no server, no dependencies: it's a static web page.
    | 🕵️ **Mystery / Noir** | Walking bass, brushed drums, smoky minor |
    | 🏃 **Action / Chase** | Propulsive ostinato + taiko drive |
    | ☀️ **Uplifting / Corporate** | Bright bed that sits under narration |
-   | 🤹 **Comedic / Quirky** | Pizzicato hops, marimba, playful rhythm |
 
    | Electronic | |
    |---|---|
