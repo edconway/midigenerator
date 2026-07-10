@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TuneForge — MIDI tune generator</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎛️</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <span class="brand-icon">🎛️</span>
+      <div>
+        <h1>TuneForge</h1>
+        <p class="tagline">Dial in a style · generate a tune · drop the MIDI into your DAW</p>
+      </div>
+    </div>
+    <button id="ai-settings-btn" class="ghost-btn" title="AI provider settings">⚙️ AI setup</button>
+  </header>
+
+  <main>
+    <section class="panel">
+      <h2>1 · Pick a genre</h2>
+      <div id="genre-grid" class="genre-grid"></div>
+    </section>
+
+    <section class="panel">
+      <h2>2 · Shape the sound</h2>
+      <div id="knobs" class="knob-row"></div>
+      <div class="row-controls">
+        <label>Key
+          <select id="key-select"></select>
+        </label>
+        <label>Scale
+          <select id="scale-select"></select>
+        </label>
+        <label>Seed
+          <span class="seed-group">
+            <input id="seed-input" type="number" min="1" step="1">
+            <button id="dice-btn" class="ghost-btn" title="New random seed">🎲</button>
+          </span>
+        </label>
+        <div class="parts-wrap">
+          <span class="parts-label">Parts</span>
+          <div id="parts" class="parts"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>3 · Generate &amp; export</h2>
+      <div class="actions">
+        <button id="generate-btn" class="primary-btn">🎲 Generate</button>
+        <button id="play-btn" class="big-btn">&#9654; Play</button>
+        <button id="loop-btn" class="big-btn toggle" title="Loop playback">Loop</button>
+        <button id="download-btn" class="primary-btn download">⬇ Download MIDI</button>
+        <span class="spacer"></span>
+        <input id="ai-brief" type="text" placeholder="Optional brief for the AI… e.g. “melancholy sunset drive”">
+        <button id="ai-btn" class="ai-btn">✨ Compose with AI</button>
+      </div>
+
+      <div class="preview">
+        <div id="song-title" class="song-title"></div>
+        <div class="roll-wrap">
+          <canvas id="roll"></canvas>
+          <canvas id="playhead"></canvas>
+        </div>
+        <div id="legend" class="legend"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Space = play/stop · G = new tune · MIDI files import directly into Ableton, Logic, FL Studio, GarageBand…
+    Each track lands on its own channel (drums on 10) — assign your own instruments in the DAW.
+  </footer>
+
+  <div id="status" class="status"></div>
+
+  <!-- AI settings modal -->
+  <div id="ai-modal" class="modal">
+    <div class="modal-card">
+      <h3>AI composer setup</h3>
+      <p class="modal-note">
+        Your API key is stored only in this browser (localStorage) and sent only to the
+        provider you choose. Rule-based generation works fully offline without any key.
+      </p>
+      <label>Provider
+        <select id="ai-provider">
+          <option value="anthropic">Claude (Anthropic)</option>
+          <option value="openai">OpenAI</option>
+        </select>
+      </label>
+      <div id="anthropic-rows">
+        <label>Anthropic API key
+          <input id="ai-anthropic-key" type="password" placeholder="sk-ant-…" autocomplete="off">
+        </label>
+        <label>Model
+          <input id="ai-anthropic-model" type="text" list="anthropic-models" placeholder="claude-opus-4-8">
+          <datalist id="anthropic-models"></datalist>
+        </label>
+      </div>
+      <div id="openai-rows">
+        <label>OpenAI API key
+          <input id="ai-openai-key" type="password" placeholder="sk-…" autocomplete="off">
+        </label>
+        <label>Model
+          <input id="ai-openai-model" type="text" placeholder="gpt-4.1">
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button id="ai-close" class="ghost-btn">Cancel</button>
+        <button id="ai-save" class="primary-btn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/theory.js"></script>
+  <script src="js/genres.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/midi.js"></script>
+  <script src="js/synth.js"></script>
+  <script src="js/ai.js"></script>
+  <script src="js/ui.js"></script>
+</body>
+</html>
