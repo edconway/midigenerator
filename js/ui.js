@@ -11,16 +11,27 @@
 
   const PART_ORDER = ['drums', 'bass', 'chords', 'melody', 'pads', 'arp'];
 
-  // Curated GM picks for the per-part instrument override.
-  const GM_CHOICES = [0, 4, 5, 7, 11, 16, 17, 24, 25, 26, 27, 30, 32, 33, 35, 36, 38, 39,
-    42, 46, 48, 49, 50, 52, 54, 56, 61, 62, 66, 73, 80, 81, 84, 87, 88, 89, 90, 91, 94, 98, 104, 108, 114];
+  // Curated GM picks for the per-part instrument override — spans keys,
+  // guitars, basses, orchestral strings/brass/wood, choirs, synths & pads,
+  // FX and mallets, so scoring palettes are all selectable by hand.
+  const GM_CHOICES = [
+    0, 1, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14,          // keys & mallets
+    16, 17, 19, 24, 25, 26, 27, 30,                    // organ & guitars
+    32, 33, 34, 35, 36, 38, 39,                        // basses
+    40, 41, 42, 43, 44, 45, 46, 47,                    // strings & orchestral
+    48, 49, 50, 52, 53, 54, 55,                        // ensembles, choirs
+    56, 58, 59, 60, 61, 62,                            // brass
+    65, 66, 68, 71, 73,                                // winds
+    80, 81, 84, 87, 88, 89, 90, 91, 92, 93, 94, 95,    // synth leads & pads
+    98, 99, 100, 101, 102, 108, 114,                   // FX & world
+  ];
 
   /* ------------------------------------------------------------- state */
 
   const state = {
-    genreId: 'house',
-    tempo: 124, bars: 8, key: 9, scale: 'minor',
-    energy: 0.65, complexity: 0.5, swing: 0.18, humanize: 0.25, timbre: 0.5,
+    genreId: 'cinematic',
+    tempo: 90, bars: 8, key: 9, scale: 'minor',
+    energy: 0.5, complexity: 0.5, swing: 0.0, humanize: 0.5, timbre: 0.5,
     seed: 1 + Math.floor(Math.random() * 99999),
     parts: { drums: true, bass: true, chords: true, melody: true, pads: false, arp: false },
     instruments: {},

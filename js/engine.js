@@ -234,10 +234,13 @@ const Engine = (() => {
           break;
         }
 
-        case 'synth8': // synthwave straight-8 pulse
+        case 'synth8': // synthwave straight-8 pulse (seeded octave/passing variation)
           for (let s = 0; s < 16; s += 2) {
-            const oct2 = energy > 0.55 && s % 4 === 2;
-            put(s, 0.42, oct2 ? root + 12 : root, s % 8 === 0 ? 102 : 86);
+            let p = root;
+            if ((energy > 0.55 && s % 4 === 2) || Theory.chance(rand, complexity * 0.25)) p = root + 12;
+            else if (Theory.chance(rand, 0.12)) p = fifth;
+            if (s === 14 && Theory.chance(rand, 0.4)) p = nextRoot > root ? nextRoot - 2 : nextRoot + 2;
+            put(s, 0.42, p, s % 8 === 0 ? 102 : 86);
           }
           break;
 
@@ -257,6 +260,55 @@ const Engine = (() => {
           put(11, 0.25, root, 80);
           put(14, 0.45, Theory.chance(rand, 0.4) ? root + 12 : fifth, 90);
           break;
+
+        case 'pulse': { // tension: low pedal + heartbeat re-articulations
+          if (h.boundary) put(0, 4 * h.durBars - 0.2, root, 62);
+          const beat = Theory.pick(rand, [8, 9, 10, 12]);
+          if (Theory.chance(rand, 0.5 + complexity * 0.3)) {
+            put(beat, 0.18, root, 78);      // "lub"
+            put(beat + 1, 0.22, root, 58);  // "dub"
+          }
+          if (Theory.chance(rand, complexity * 0.3)) put(4, 0.2, fifth, 60);
+          break;
+        }
+
+        case 'ostinato': { // action: driving repeated-note ostinato
+          const sub = energy > 0.7 ? 1 : 2; // 16ths at high energy, else 8ths
+          for (let s = 0; s < 16; s += sub) {
+            const onBeat = s % 4 === 0;
+            if (!onBeat && sub === 1 && !Theory.chance(rand, 0.55 + complexity * 0.35)) continue;
+            let p = root;
+            if (Theory.chance(rand, 0.14 + complexity * 0.16)) p = Theory.chance(rand, 0.5) ? fifth : root + 12;
+            if (s === 14 && Theory.chance(rand, 0.5)) p = nextRoot; // pull toward next chord
+            put(s, sub === 1 ? 0.16 : 0.22, p, onBeat ? 108 : 84 + Math.round(rand() * 12));
+          }
+          break;
+        }
+
+        case 'pizz': { // comedic: bouncy staccato hops
+          for (const s of [0, 4, 8, 12]) put(s, 0.14, root, 98);
+          for (const s of [2, 6, 10, 14]) {
+            if (!Theory.chance(rand, 0.3 + complexity * 0.4)) continue;
+            put(s, 0.12, Theory.pick(rand, [fifth, root + 12, root, root + 7]), 76 + Math.round(rand() * 14));
+          }
+          break;
+        }
+
+        case 'halfNote': { // uplifting: clean supportive root/fifth
+          put(0, 1.9, root, 92);
+          put(8, 1.7, Theory.chance(rand, 0.4) ? fifth : root, 84);
+          if (Theory.chance(rand, 0.3 + complexity * 0.2)) put(14, 0.4, nextRoot, 74); // walk-up
+          break;
+        }
+
+        case 'arco': { // emotional: sustained bowed bass, gentle root->fifth
+          if (h.boundary) {
+            const half = 2 * h.durBars;
+            put(0, half * 0.98, root, 68);
+            put(Math.round(half / 0.25), half * 0.98, Theory.chance(rand, 0.5) ? fifth : root, 58);
+          }
+          break;
+        }
 
         case 'drone': // ambient / cinematic pedal tones
         default:
@@ -333,6 +385,46 @@ const Engine = (() => {
           break;
         }
 
+        case 'cluster': // horror: sustained chord + a dissonant added tone
+          if (h.boundary) {
+            const dur = 4 * h.durBars - 0.15;
+            put(0, dur, 52);
+            const bottom = h.voicing[0];
+            const diss = Theory.chance(rand, 0.5) ? bottom + 1 : bottom + 6; // b2 or tritone
+            if (diss <= 96) notes.push({ start: t0, dur, pitch: diss, vel: 38 });
+            if (Theory.chance(rand, complexity * 0.5)) {
+              const top = h.voicing[h.voicing.length - 1] + 11; // minor-9 shimmer up top
+              if (top <= 100) notes.push({ start: t0, dur, pitch: top, vel: 30 });
+            }
+          }
+          break;
+
+        case 'staccato': { // comedic: short playful stabs
+          put(0, 0.14, 88);
+          for (const s of [2, 4, 6, 8, 10, 12, 14]) {
+            if (!Theory.chance(rand, 0.28 + complexity * 0.35)) continue;
+            put(s, 0.13, 70 + Math.round(rand() * 22));
+          }
+          break;
+        }
+
+        case 'broken': { // emotional: flowing broken-chord accompaniment
+          const tones = h.voicing;
+          if (tones.length) {
+            for (let s = 0; s < 8; s++) {
+              if (Theory.chance(rand, (1 - energy) * 0.18)) continue;
+              const p = tones[s % tones.length];
+              notes.push({
+                start: t0 + s * 0.5,
+                dur: 0.9,
+                pitch: p,
+                vel: (s === 0 ? 70 : 56) + Math.round(rand() * 8),
+              });
+            }
+          }
+          break;
+        }
+
         case 'pad':
         default:
           if (h.boundary) put(0, 4 * h.durBars - 0.15, 64);
@@ -370,6 +462,17 @@ const Engine = (() => {
       [[0, 1], [3, 1], [6, 2], [8, 1], [11, 1], [14, 2]],
       [[0, 2], [3, 1], [4, 2], [7, 1], [8, 2], [11, 1], [12, 2]],
       [[0, 1], [2, 1], [4, 2], [7, 1], [10, 2], [12, 2], [14, 2]],
+    ],
+    motif: [ // action: driving, repetitive rhythmic cells
+      [[0, 2], [2, 2], [4, 4], [8, 2], [10, 2], [12, 4]],
+      [[0, 1], [1, 1], [2, 2], [4, 2], [6, 2], [8, 4], [12, 4]],
+      [[0, 2], [4, 2], [6, 2], [8, 2], [10, 2], [12, 2], [14, 2]],
+      [[0, 4], [4, 4], [8, 2], [10, 2], [12, 4]],
+    ],
+    playful: [ // comedic: skippy staccato bounce
+      [[0, 1], [2, 1], [3, 1], [6, 2], [8, 1], [10, 1], [11, 1], [14, 2]],
+      [[0, 2], [2, 1], [4, 1], [6, 1], [8, 2], [11, 1], [12, 2], [14, 1]],
+      [[0, 1], [1, 1], [4, 2], [7, 1], [8, 1], [10, 1], [12, 2], [15, 1]],
     ],
   };
 
