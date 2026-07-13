@@ -380,11 +380,19 @@
 
   /* ----------------------------------------------------------- transport */
 
-  function startPlayback() {
+  async function startPlayback() {
     if (!song) return;
-    Synth.play(song, { loop: state.loop, timbre: state.timbre });
-    updatePlayButton();
-    if (!rafId) rafId = requestAnimationFrame(tickPlayhead);
+    try {
+      // Unlock/resume AudioContext inside the user gesture before scheduling.
+      await Synth.unlock();
+      await Synth.play(song, { loop: state.loop, timbre: state.timbre });
+      updatePlayButton();
+      if (!rafId) rafId = requestAnimationFrame(tickPlayhead);
+    } catch (err) {
+      console.error(err);
+      stopPlayback();
+      toast('Audio is locked on this device — tap Play again.', 5000);
+    }
   }
 
   function stopPlayback() {
@@ -504,6 +512,19 @@
       const o = document.createElement('option');
       o.value = m;
       modelList.appendChild(o);
+    });
+
+    // Prime the AudioContext on the first real user gesture so later Play
+    // (and Space) is less likely to race iOS's autoplay suspension.
+    const unlockOnce = () => { Synth.unlock().catch(() => {}); };
+    ['pointerdown', 'touchend', 'keydown'].forEach((evt) => {
+      document.addEventListener(evt, unlockOnce, { once: true, passive: true });
+    });
+
+    // Returning from lock screen / another app: iOS suspends AudioContext.
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState !== 'visible') return;
+      Synth.unlock().catch(() => {});
     });
 
     window.addEventListener('resize', () => drawRoll());

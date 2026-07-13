@@ -2,6 +2,10 @@
  * A small subtractive synth + drum machine so you can audition the tune
  * before dragging the MIDI into a DAW. Playback uses the same note data as
  * the MIDI export, so what you hear is what you get (timbre aside).
+ *
+ * iOS Safari starts AudioContext in the "suspended" state and only unlocks it
+ * after a user gesture — and resume() is asynchronous. We always await a
+ * running context before scheduling notes, and re-unlock after interruptions.
  */
 
 const Synth = (() => {
@@ -16,22 +20,67 @@ const Synth = (() => {
   let totalBeats = 0;
   let loop = true;
   let timbre = 0.5;
+  let resumePromise = null;
+  let playGeneration = 0;      // invalidates overlapping async play() calls
 
-  function ensureCtx() {
-    if (!ctx) {
-      ctx = new (window.AudioContext || window.webkitAudioContext)();
-      master = ctx.createDynamicsCompressor();
-      master.threshold.value = -14;
-      master.knee.value = 10;
-      master.ratio.value = 10;
-      master.attack.value = 0.003;
-      master.release.value = 0.2;
-      master.connect(ctx.destination);
-      noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
-      const data = noiseBuf.getChannelData(0);
-      for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+  function createCtx() {
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    master = ctx.createDynamicsCompressor();
+    master.threshold.value = -14;
+    master.knee.value = 10;
+    master.ratio.value = 10;
+    master.attack.value = 0.003;
+    master.release.value = 0.2;
+    master.connect(ctx.destination);
+    noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+    const data = noiseBuf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+
+    // iOS can drop the context back to suspended after lock/background.
+    ctx.addEventListener('statechange', () => {
+      if (!playing) return;
+      if (ctx.state === 'suspended' || ctx.state === 'interrupted') {
+        resumeCtx().catch(() => {});
+      }
+    });
+  }
+
+  function resumeCtx() {
+    if (!ctx) return Promise.resolve();
+    if (ctx.state === 'running') return Promise.resolve();
+    if (!resumePromise) {
+      resumePromise = Promise.resolve(ctx.resume())
+        .catch((err) => {
+          // Ignore races (closed / already running). Callers retry on play.
+          console.warn('AudioContext resume failed', err);
+        })
+        .finally(() => { resumePromise = null; });
     }
-    if (ctx.state === 'suspended') ctx.resume();
+    return resumePromise;
+  }
+
+  /** Ensure we have a context and it is running (or was just asked to run). */
+  async function ensureCtx() {
+    if (!ctx) createCtx();
+    if (ctx.state !== 'running') await resumeCtx();
+    return ctx;
+  }
+
+  /**
+   * Best-effort unlock for iOS: create + resume + play a silent buffer inside
+   * a user-gesture handler so later play() starts reliably.
+   */
+  async function unlock() {
+    await ensureCtx();
+    if (!ctx || ctx.state !== 'running') return false;
+    try {
+      const silent = ctx.createBuffer(1, 1, ctx.sampleRate);
+      const src = ctx.createBufferSource();
+      src.buffer = silent;
+      src.connect(ctx.destination);
+      src.start(0);
+    } catch (e) { /* unlock is best-effort */ }
+    return ctx.state === 'running';
   }
 
   /* ------------------------------------------------------------- voices */
@@ -190,6 +239,12 @@ const Synth = (() => {
   let iterStart = 0; // audio-clock time of the current loop iteration
 
   function scheduler() {
+    if (!playing || !ctx || !bus) return;
+    // If iOS suspended us mid-play, try to wake up and wait for the next tick.
+    if (ctx.state !== 'running') {
+      resumeCtx().catch(() => {});
+      return;
+    }
     const horizon = ctx.currentTime + 0.35;
     while (true) {
       if (evIdx >= events.length) {
@@ -212,9 +267,21 @@ const Synth = (() => {
     }
   }
 
-  function play(song, opts = {}) {
-    ensureCtx();
-    stop();
+  async function play(song, opts = {}) {
+    const gen = ++playGeneration;
+    await ensureCtx();
+    if (gen !== playGeneration) return; // a newer play/stop won the race
+
+    // iOS sometimes needs a second resume attempt after returning from background.
+    if (ctx.state !== 'running') {
+      await resumeCtx();
+      if (gen !== playGeneration) return;
+    }
+    if (ctx.state !== 'running') {
+      throw new Error('Audio is still locked. Tap Play again.');
+    }
+
+    stopTransport();
     loop = opts.loop !== false;
     timbre = opts.timbre !== undefined ? opts.timbre : 0.5;
     spb = 60 / song.tempo;
@@ -230,6 +297,7 @@ const Synth = (() => {
     bus.gain.value = 0.9;
     bus.connect(master);
 
+    // Schedule slightly ahead of "now" using the *running* clock.
     t0 = ctx.currentTime + 0.08;
     iterStart = t0;
     evIdx = 0;
@@ -238,7 +306,7 @@ const Synth = (() => {
     timer = setInterval(scheduler, 60);
   }
 
-  function stop() {
+  function stopTransport() {
     if (timer) { clearInterval(timer); timer = null; }
     if (bus) {
       const b = bus;
@@ -253,6 +321,11 @@ const Synth = (() => {
     playing = false;
   }
 
+  function stop() {
+    playGeneration++; // cancel any in-flight async play()
+    stopTransport();
+  }
+
   function isPlaying() { return playing; }
 
   /** Current position in beats (for the playhead). */
@@ -263,5 +336,5 @@ const Synth = (() => {
     return loop ? elapsed % totalBeats : Math.min(elapsed, totalBeats);
   }
 
-  return { play, stop, isPlaying, positionBeats };
+  return { play, stop, isPlaying, positionBeats, unlock, ensureCtx };
 })();
